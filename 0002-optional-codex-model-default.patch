@@ -1,0 +1,167 @@
+From 9784dcbb44713c35dfdc60b5adc815f51c535013 Mon Sep 17 00:00:00 2001
+From: 936220035 <936220035@qq.com>
+Date: Wed, 8 Jul 2026 19:53:28 +0800
+Subject: [PATCH] Avoid unavailable Codex spark default
+
+---
+ packages/adapters/codex-local/src/index.ts                 | 7 +++----
+ .../adapters/codex-local/src/server/codex-args.test.ts     | 4 ++--
+ packages/shared/src/validators/issue.test.ts               | 4 ++--
+ server/src/__tests__/adapter-registry.test.ts              | 2 +-
+ server/src/__tests__/agent-permissions-routes.test.ts      | 6 +++---
+ server/src/__tests__/codex-local-execute.test.ts           | 4 ++--
+ server/src/__tests__/heartbeat-model-profile.test.ts       | 2 +-
+ 7 files changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/packages/adapters/codex-local/src/index.ts b/packages/adapters/codex-local/src/index.ts
+index 3a3891497..c8b3cd190 100644
+--- a/packages/adapters/codex-local/src/index.ts
++++ b/packages/adapters/codex-local/src/index.ts
+@@ -40,7 +40,6 @@ export function isCodexLocalFastModeSupported(model: string | null | undefined):
+ export const models = [
+   { id: DEFAULT_CODEX_LOCAL_MODEL, label: DEFAULT_CODEX_LOCAL_MODEL },
+   { id: "gpt-5.4", label: "gpt-5.4" },
+-  { id: "gpt-5.3-codex-spark", label: "gpt-5.3-codex-spark" },
+   { id: "gpt-5", label: "gpt-5" },
+   { id: "o3", label: "o3" },
+   { id: "o4-mini", label: "o4-mini" },
+@@ -54,10 +53,10 @@ export const modelProfiles: AdapterModelProfileDefinition[] = [
+   {
+     key: "cheap",
+     label: "Cheap",
+-    description: "Use the lowest-cost known Codex local model lane without changing the primary model.",
++    description: "Use the local default Codex model lane without changing the primary model.",
+     adapterConfig: {
+-      model: "gpt-5.3-codex-spark",
+-      // Spark is the cheap lane by model price; high effort keeps Codex coding behavior usable for delegated work.
++      model: DEFAULT_CODEX_LOCAL_MODEL,
++      // Some gateways do not expose the spark model, so keep the cheap lane on the configured local default.
+       modelReasoningEffort: "high",
+     },
+     source: "adapter_default",
+diff --git a/packages/adapters/codex-local/src/server/codex-args.test.ts b/packages/adapters/codex-local/src/server/codex-args.test.ts
+index 46a9890d9..802f29a62 100644
+--- a/packages/adapters/codex-local/src/server/codex-args.test.ts
++++ b/packages/adapters/codex-local/src/server/codex-args.test.ts
+@@ -91,7 +91,7 @@ describe("buildCodexExecArgs", () => {
+ 
+   it("ignores fast mode for unsupported models", () => {
+     const result = buildCodexExecArgs({
+-      model: "gpt-5.3-codex-spark",
++      model: "gpt-5",
+       fastMode: true,
+     });
+ 
+@@ -104,7 +104,7 @@ describe("buildCodexExecArgs", () => {
+       "exec",
+       "--json",
+       "--model",
+-      "gpt-5.3-codex-spark",
++      "gpt-5",
+       "-",
+     ]);
+   });
+diff --git a/packages/shared/src/validators/issue.test.ts b/packages/shared/src/validators/issue.test.ts
+index 8834dcb0b..57fc78575 100644
+--- a/packages/shared/src/validators/issue.test.ts
++++ b/packages/shared/src/validators/issue.test.ts
+@@ -356,7 +356,7 @@ describe("issue validators", () => {
+             enabled: true,
+             label: "Cheap Codex",
+             adapterConfig: {
+-              model: "gpt-5.3-codex-spark",
++              model: "gpt-5.5",
+             },
+           },
+         },
+@@ -364,7 +364,7 @@ describe("issue validators", () => {
+     });
+ 
+     expect(parsed.runtimeConfig.modelProfiles?.cheap?.adapterConfig).toEqual({
+-      model: "gpt-5.3-codex-spark",
++      model: "gpt-5.5",
+     });
+     expect(parsed.runtimeConfig.heartbeat).toEqual({ enabled: true });
+   });
+diff --git a/server/src/__tests__/adapter-registry.test.ts b/server/src/__tests__/adapter-registry.test.ts
+index 23455f282..8e97d3919 100644
+--- a/server/src/__tests__/adapter-registry.test.ts
++++ b/server/src/__tests__/adapter-registry.test.ts
+@@ -268,7 +268,7 @@ describe("server adapter registry", () => {
+     await expect(listAdapterModelProfiles("codex_local")).resolves.toEqual([
+       expect.objectContaining({
+         key: "cheap",
+-        adapterConfig: expect.objectContaining({ model: "gpt-5.3-codex-spark" }),
++        adapterConfig: expect.objectContaining({ model: "gpt-5.5" }),
+         source: "adapter_default",
+       }),
+     ]);
+diff --git a/server/src/__tests__/agent-permissions-routes.test.ts b/server/src/__tests__/agent-permissions-routes.test.ts
+index 9aeda84ac..5e14e8dcd 100644
+--- a/server/src/__tests__/agent-permissions-routes.test.ts
++++ b/server/src/__tests__/agent-permissions-routes.test.ts
+@@ -688,7 +688,7 @@ describe.sequential("agent permission routes", () => {
+           modelProfiles: {
+             cheap: {
+               adapterConfig: {
+-                model: "gpt-5.3-codex-spark",
++                model: "gpt-5.5",
+                 env: {
+                   API_TOKEN: {
+                     type: "secret_ref",
+@@ -706,7 +706,7 @@ describe.sequential("agent permission routes", () => {
+     expect(mockSecretService.normalizeAdapterConfigForPersistence).toHaveBeenCalledWith(
+       companyId,
+       expect.objectContaining({
+-        model: "gpt-5.3-codex-spark",
++        model: "gpt-5.5",
+         env: expect.any(Object),
+       }),
+       { strictMode: false, adapterType: "codex_local" },
+@@ -718,7 +718,7 @@ describe.sequential("agent permission routes", () => {
+           modelProfiles: {
+             cheap: {
+               adapterConfig: {
+-                model: "gpt-5.3-codex-spark",
++                model: "gpt-5.5",
+                 env: {
+                   API_TOKEN: {
+                     type: "secret_ref",
+diff --git a/server/src/__tests__/codex-local-execute.test.ts b/server/src/__tests__/codex-local-execute.test.ts
+index d8b1c5b10..8c0520bb6 100644
+--- a/server/src/__tests__/codex-local-execute.test.ts
++++ b/server/src/__tests__/codex-local-execute.test.ts
+@@ -561,7 +561,7 @@ describe("codex execute", () => {
+     await fs.mkdir(workspace, { recursive: true });
+     await writeFailingCodexCommand(
+       commandPath,
+-      "You've hit your usage limit for GPT-5.3-Codex-Spark. Switch to another model now, or try again at 11:31 PM.",
++      "You've hit your usage limit for GPT-5.5. Switch to another model now, or try again at 11:31 PM.",
+     );
+ 
+     const previousHome = process.env.HOME;
+@@ -592,7 +592,7 @@ describe("codex execute", () => {
+         config: {
+           command: commandPath,
+           cwd: workspace,
+-          model: "gpt-5.3-codex-spark",
++          model: "gpt-5.5",
+           promptTemplate: "Follow the paperclip heartbeat.",
+         },
+         context: {},
+diff --git a/server/src/__tests__/heartbeat-model-profile.test.ts b/server/src/__tests__/heartbeat-model-profile.test.ts
+index 5ac3c1053..737c146f4 100644
+--- a/server/src/__tests__/heartbeat-model-profile.test.ts
++++ b/server/src/__tests__/heartbeat-model-profile.test.ts
+@@ -35,7 +35,7 @@ describe("heartbeat model profile application", () => {
+       configSource: "adapter_default",
+       fallbackReason: null,
+       adapterConfig: {
+-        model: "gpt-5.3-codex-spark",
++        model: "gpt-5.5",
+         modelReasoningEffort: "high",
+       },
+     });
+-- 
+2.53.0.windows.2
+

@@ -1,0 +1,475 @@
+From 5043662a467b59dd71554df128923058cc55804b Mon Sep 17 00:00:00 2001
+From: 936220035 <936220035@qq.com>
+Date: Wed, 8 Jul 2026 18:58:13 +0800
+Subject: [PATCH] Add local Chinese UI and Windows fixes
+
+---
+ .../codex-local/src/server/codex-home.ts      |   4 +
+ scripts/link-plugin-dev-sdk.mjs               |   8 +-
+ ui/src/i18n/locales.ts                        |   2 +-
+ ui/src/lib/localize-ui.ts                     | 374 ++++++++++++++++++
+ ui/src/main.tsx                               |   1 +
+ 5 files changed, 385 insertions(+), 4 deletions(-)
+ create mode 100644 ui/src/lib/localize-ui.ts
+
+diff --git a/packages/adapters/codex-local/src/server/codex-home.ts b/packages/adapters/codex-local/src/server/codex-home.ts
+index b8b6e245c..d91a81836 100644
+--- a/packages/adapters/codex-local/src/server/codex-home.ts
++++ b/packages/adapters/codex-local/src/server/codex-home.ts
+@@ -137,6 +137,10 @@ async function createExpectedSymlink(target: string, source: string): Promise<vo
+   } catch (error) {
+     const code = (error as NodeJS.ErrnoException).code;
+     if (code === "EEXIST" && await isExpectedSymlink(target, source)) return;
++    if (process.platform === "win32" && (code === "EPERM" || code === "EINVAL")) {
++      await fs.copyFile(source, target);
++      return;
++    }
+     throw error;
+   }
+ }
+diff --git a/scripts/link-plugin-dev-sdk.mjs b/scripts/link-plugin-dev-sdk.mjs
+index 512b67f86..9eff54392 100644
+--- a/scripts/link-plugin-dev-sdk.mjs
++++ b/scripts/link-plugin-dev-sdk.mjs
+@@ -10,6 +10,7 @@
+ 
+ import { existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, rmSync, symlinkSync } from "node:fs";
+ import { dirname, join, relative, resolve } from "node:path";
++import process from "node:process";
+ import { fileURLToPath } from "node:url";
+ 
+ const __dirname = dirname(fileURLToPath(import.meta.url));
+@@ -71,14 +72,15 @@ export function readPluginsUnder(parentDir) {
+ export function linkSdkInto(packageDir) {
+   const scopeDir = join(packageDir, "node_modules", "@paperclipai");
+   const linkTarget = join(scopeDir, "plugin-sdk");
+-  const relativeSdkDir = relative(scopeDir, sdkDir);
++  const linkType = process.platform === "win32" ? "junction" : "dir";
++  const linkSource = linkType === "junction" ? sdkDir : relative(scopeDir, sdkDir);
+ 
+   mkdirSync(scopeDir, { recursive: true });
+ 
+   try {
+     const stat = lstatSync(linkTarget);
+     if (stat.isSymbolicLink()) {
+-      if (readlinkSync(linkTarget) === relativeSdkDir) {
++      if (readlinkSync(linkTarget) === linkSource) {
+         // Already linked to the in-repo SDK; nothing to do.
+         return false;
+       }
+@@ -93,6 +95,6 @@ export function linkSdkInto(packageDir) {
+     if (error?.code !== "ENOENT") throw error;
+   }
+ 
+-  symlinkSync(relativeSdkDir, linkTarget, "dir");
++  symlinkSync(linkSource, linkTarget, linkType);
+   return true;
+ }
+diff --git a/ui/src/i18n/locales.ts b/ui/src/i18n/locales.ts
+index 188ee2b11..d93949add 100644
+--- a/ui/src/i18n/locales.ts
++++ b/ui/src/i18n/locales.ts
+@@ -2,7 +2,7 @@ import type { Resource } from "i18next";
+ 
+ import { assertValidLocaleMessages } from "./locale-validation";
+ 
+-export const DEFAULT_LOCALE = "en" as const;
++export const DEFAULT_LOCALE = "zh-CN" as const;
+ 
+ const localeModules = import.meta.glob("./locales/*.json", {
+   eager: true,
+diff --git a/ui/src/lib/localize-ui.ts b/ui/src/lib/localize-ui.ts
+new file mode 100644
+index 000000000..fa8333788
+--- /dev/null
++++ b/ui/src/lib/localize-ui.ts
+@@ -0,0 +1,374 @@
++const exactTranslations: Record<string, string> = {
++  "DASHBOARD": "仪表盘",
++  "Dashboard": "仪表盘",
++  "New Task": "新建任务",
++  "New Sub-task": "新建子任务",
++  "New document": "新建文档",
++  "Upload attachment": "上传附件",
++  "Inbox": "收件箱",
++  "Tasks": "任务",
++  "Routines": "定时任务",
++  "Agents": "智能体",
++  "See all agents": "查看所有智能体",
++  "AGENTS": "智能体",
++  "WORK": "工作",
++  "COMPANY": "公司",
++  "Activity": "活动",
++  "ACTIVITY": "活动",
++  "Org": "组织架构",
++  "Approvals": "审批",
++  "Pending Approvals": "待审批",
++  "Tasks In Progress": "进行中的任务",
++  "Month Spend": "本月花费",
++  "Recent Tasks": "最近任务",
++  "Task Activity": "任务活动",
++  "Run Activity": "运行活动",
++  "Tasks by Priority": "按优先级统计",
++  "Tasks by Status": "按状态统计",
++  "Success Rate": "成功率",
++  "Last 14 days": "最近 14 天",
++  "Unlimited budget": "不限预算",
++  "Awaiting board review": "等待管理员审批",
++  "Recovery needed": "需要恢复",
++  "Documents": "文档",
++  "Properties": "属性",
++  "TRIAGE": "分诊",
++  "RELATIONSHIPS": "关联关系",
++  "EXECUTION": "执行",
++  "ABOUT": "关于",
++  "Status": "状态",
++  "Priority": "优先级",
++  "Labels": "标签",
++  "Assignee": "负责人",
++  "Project": "项目",
++  "Parent": "父任务",
++  "Blocked by": "被阻塞于",
++  "Blocking": "正在阻塞",
++  "Sub-tasks": "子任务",
++  "Reviewers": "审阅人",
++  "Approvers": "审批人",
++  "Monitor": "监控",
++  "Originating": "来源",
++  "Started": "开始于",
++  "Created": "创建于",
++  "Updated": "更新于",
++  "None": "无",
++  "Add blocker": "添加阻塞项",
++  "Add sub-task": "添加子任务",
++  "View run": "查看运行",
++  "View agent": "查看智能体",
++  "View CMP-1": "查看 CMP-1",
++  "Live now": "正在运行",
++  "RUNNING": "运行中",
++  "Working...": "工作中...",
++  "Agents Enabled": "已启用智能体",
++  "Finished just now": "刚刚完成",
++  "just now": "刚刚",
++  "open": "打开",
++  "running": "运行中",
++  "paused": "已暂停",
++  "errors": "错误",
++  "blocked": "已阻塞",
++  "Blocked": "已阻塞",
++  "Critical": "严重",
++  "High": "高",
++  "Medium": "中",
++  "Low": "低",
++  "Pending": "待处理",
++  "Finished": "已完成",
++  "System updated CMP-1": "系统已更新 CMP-1",
++  "Hire your first engineer and create a hiring plan": "雇佣第一位工程师并创建招聘计划",
++  "Hiring Plan: Founding Engineer + First Delegation Tree": "招聘计划：创始工程师 + 首批委派树",
++  "Recommendation": "建议",
++  "Founding Engineer": "创始工程师",
++  "Summary": "摘要",
++  "Onboarding": "初始化",
++  "Create your first company": "创建你的第一家公司",
++  "Create another company": "创建另一家公司",
++  "Create your first agent": "创建你的第一个智能体",
++  "Start Onboarding": "开始初始化",
++  "Add Agent": "添加智能体",
++  "Loading...": "加载中...",
++  "No companies": "暂无公司",
++  "New Company": "新公司",
++  "Search": "搜索",
++  "Settings": "设置",
++  "Projects": "项目",
++  "Goals": "目标",
++  "Costs": "成本",
++  "Artifacts": "产物",
++  "Timeline": "时间线",
++  "Org Chart": "组织架构",
++  "Instructions": "说明",
++  "Configuration": "配置",
++  "Runs": "运行记录",
++  "Budget": "预算",
++  "Live Run": "实时运行",
++  "Star": "收藏",
++  "Assign Task": "分配任务",
++  "Run Heartbeat": "运行心跳",
++  "Pause": "暂停",
++  "Automation": "自动化",
++  "View details": "查看详情",
++  "View details →": "查看详情 →",
++  "details": "详情",
++  "details →": "详情 →",
++  "See All": "查看全部",
++  "Input tokens": "输入用量",
++  "Output tokens": "输出用量",
++  "Cached tokens": "缓存用量",
++  "Total cost": "总成本",
++  "Date": "日期",
++  "Run": "运行",
++  "Input": "输入",
++  "Output": "输出",
++  "Cost": "成本",
++  "PLAN": "计划",
++  "comments": "评论",
++  "Board": "看板",
++  "CEO": "首席执行官",
++  "In Review": "审核中",
++  "in review": "审核中",
++  "live": "在线",
++  "All": "全部",
++  "Active": "活跃",
++  "Paused": "已暂停",
++  "Error": "错误",
++};
++
++const regexTranslations: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
++  [/^(\d+) live$/, (match) => `${match[1]} 在线`],
++  [/^(\d+) live below$/, (match) => `下级有 ${match[1]} 个运行中`],
++  [/^(\d+) running, (\d+) paused, (\d+) errors$/, (match) => `${match[1]} 个运行中，${match[2]} 个已暂停，${match[3]} 个错误`],
++  [/^(\d+)m ago$/, (match) => `${match[1]} 分钟前`],
++  [/^(\d+)h ago$/, (match) => `${match[1]} 小时前`],
++  [/^(\d+)d ago$/, (match) => `${match[1]} 天前`],
++  [/^(\d+) seconds ago$/, (match) => `${match[1]} 秒前`],
++  [/^(\d+) second ago$/, () => "1 秒前"],
++  [/^updated (\d+) 分钟前$/, (match) => `更新于 ${match[1]} 分钟前`],
++  [/^updated (\d+)m ago$/, (match) => `更新于 ${match[1]} 分钟前`],
++  [/^updated (.+)$/, (match) => `更新于 ${translateText(match[1])}`],
++  [/^(\d+) comments$/, (match) => `${match[1]} 条评论`],
++  [/^(\d+) comment$/, (match) => `${match[1]} 条评论`],
++  [/^rev (\d+)$/, (match) => `第 ${match[1]} 版`],
++  [/^Receiving agent output · (.+)$/, (match) => `正在接收智能体输出 · ${translateText(match[1])}`],
++  [/^failed after (\d+) second$/, (match) => `${match[1]} 秒后失败`],
++  [/^failed after (\d+) seconds$/, (match) => `${match[1]} 秒后失败`],
++  [/^(.+?) run failed$/, (match) => `${match[1]} 运行失败`],
++  [/^(.+?) errored$/, (match) => `${match[1]} 出错`],
++  [/^(.+?) failed after (\d+) second$/, (match) => `${match[1]} ${match[2]} 秒后失败`],
++  [/^(.+?) failed after (\d+) seconds$/, (match) => `${match[1]} ${match[2]} 秒后失败`],
++  [/^Finished (.+)$/, (match) => `${translateText(match[1])}完成`],
++  [/^(.+?)完成$/, (match) => `${translateText(match[1])}完成`],
++  [/^(\d+) open, (\d+) blocked$/, (match) => `${match[1]} 个打开，${match[2]} 个已阻塞`],
++  [/^(\d+) open$/, (match) => `${match[1]} 个打开`],
++  [/^(\d+) blocked$/, (match) => `${match[1]} 个已阻塞`],
++  [/^status → (.+)$/, (match) => `状态 → ${translateText(match[1])}`],
++  [/^View (.+)$/, (match) => `查看 ${match[1]}`],
++  [/^Add another agent to (.+)$/, (match) => `给 ${match[1]} 添加另一个智能体`],
++  [/^(.+?) - Hire your first engineer and create a hiring plan$/, (match) => `${match[1]} - 雇佣第一位工程师并创建招聘计划`],
++];
++
++const inlineRegexTranslations: Array<[RegExp, string | ((substring: string, ...args: string[]) => string)]> = [
++  [/\bLive now\b/g, "正在运行"],
++  [/\bRUNNING\b/g, "运行中"],
++  [/\bWorking\.\.\./g, "工作中..."],
++  [/\bAgents Enabled\b/g, "已启用智能体"],
++  [/\bNew Sub-task\b/g, "新建子任务"],
++  [/\bNew document\b/g, "新建文档"],
++  [/\bUpload attachment\b/g, "上传附件"],
++  [/\bRun Activity\b/g, "运行活动"],
++  [/\bLive Run\b/g, "实时运行"],
++  [/\bSee all agents\b/g, "查看所有智能体"],
++  [/\bSee All\b/g, "查看全部"],
++  [/\bView details\b/g, "查看详情"],
++  [/\bdetails\b/g, "详情"],
++  [/\bAssign Task\b/g, "分配任务"],
++  [/\bRun Heartbeat\b/g, "运行心跳"],
++  [/\bAutomation\b/g, "自动化"],
++  [/\bDocuments\b/g, "文档"],
++  [/\bProperties\b/g, "属性"],
++  [/\bTRIAGE\b/g, "分诊"],
++  [/\bRELATIONSHIPS\b/g, "关联关系"],
++  [/\bEXECUTION\b/g, "执行"],
++  [/\bABOUT\b/g, "关于"],
++  [/\bStatus\b/g, "状态"],
++  [/\bPriority\b/g, "优先级"],
++  [/\bLabels\b/g, "标签"],
++  [/\bAssignee\b/g, "负责人"],
++  [/\bProject\b/g, "项目"],
++  [/\bParent\b/g, "父任务"],
++  [/\bBlocked by\b/g, "被阻塞于"],
++  [/\bBlocking\b/g, "正在阻塞"],
++  [/\bSub-tasks\b/g, "子任务"],
++  [/\bReviewers\b/g, "审阅人"],
++  [/\bApprovers\b/g, "审批人"],
++  [/\bMonitor\b/g, "监控"],
++  [/\bOriginating\b/g, "来源"],
++  [/\bStarted\b/g, "开始于"],
++  [/\bCreated\b/g, "创建于"],
++  [/\bUpdated\b/g, "更新于"],
++  [/\bNone\b/g, "无"],
++  [/\bAdd blocker\b/g, "添加阻塞项"],
++  [/\bAdd sub-task\b/g, "添加子任务"],
++  [/\bInput tokens\b/g, "输入用量"],
++  [/\bOutput tokens\b/g, "输出用量"],
++  [/\bCached tokens\b/g, "缓存用量"],
++  [/\bTotal cost\b/g, "总成本"],
++  [/\bin review\b/gi, "审核中"],
++  [/\bOrg\b/g, "组织架构"],
++  [/\bSkills\b/g, "技能"],
++  [/\bOnboarding\b/g, "初始化"],
++  [/\bPLAN\b/g, "计划"],
++  [/\bcomments\b/g, "评论"],
++  [/\b(\d+) live\b/g, (_substring, count) => `${count} 在线`],
++  [/\b(\d+)m ago\b/g, (_substring, count) => `${count} 分钟前`],
++  [/\b(\d+)h ago\b/g, (_substring, count) => `${count} 小时前`],
++  [/\b(\d+)d ago\b/g, (_substring, count) => `${count} 天前`],
++  [/\b(\d+) seconds ago\b/g, (_substring, count) => `${count} 秒前`],
++  [/\b1 second ago\b/g, "1 秒前"],
++  [/\bfailed after (\d+) second\b/g, (_substring, count) => `${count} 秒后失败`],
++  [/\bfailed after (\d+) seconds\b/g, (_substring, count) => `${count} 秒后失败`],
++  [
++    /\bReceiving agent output · (.+)$/g,
++    (_substring, age) => `正在接收智能体输出 · ${translateText(age)}`,
++  ],
++  [
++    /\b(\d+) running, (\d+) paused, (\d+) errors\b/g,
++    (_substring, running, paused, errors) => `${running} 个运行中，${paused} 个已暂停，${errors} 个错误`,
++  ],
++  [
++    /Hire your first engineer and create a hiring plan/g,
++    "雇佣第一位工程师并创建招聘计划",
++  ],
++  [
++    /Hiring Plan: Founding Engineer \+ First Delegation Tree/g,
++    "招聘计划：创始工程师 + 首批委派树",
++  ],
++  [/You are the CEO\. You set the direction for the company\./g, "你是首席执行官，负责为公司确定方向。"],
++  [/hire a founding engineer/g, "招聘一位创始工程师"],
++  [/write a hiring plan/g, "撰写招聘计划"],
++  [
++    /break the roadmap into concrete tasks and start delegating work/g,
++    "把路线图拆成具体任务，并开始分派工作",
++  ],
++  [/Recommendation/g, "建议"],
++  [/Founding Engineer/g, "创始工程师"],
++  [/Summary/g, "摘要"],
++  [
++    /Hire one founding engineer first: a senior full-stack\/platform engineer who can stabilize Zhongzhuan Operations Company while building the product and billing foundation\. This should be an agent role with broad engineering execution authority, but not business-pricing authority\. The CEO keeps ownership of roadmap priority, pricing\/profit model, and final approval gates\./g,
++    "先招聘一位创始工程师：最好是资深全栈/平台工程师，能够在搭建产品与计费基础的同时，稳定中转运营公司。这个角色应拥有较宽的工程执行权限，但不负责业务定价。首席执行官继续掌握路线图优先级、定价/利润模型和最终审批关。",
++  ],
++  [
++    /The plan directly supports the company mission: stability, performance, product foundations, commercialization, customer acquisition, growth into image\/video capabilities, and company-style agent operations\./g,
++    "这个计划直接服务于公司的核心目标：稳定性、性能、产品基础、商业化、客户获取、后续扩展到图片/视频能力，以及公司化的智能体运营。",
++  ],
++];
++
++const ignoredTags = new Set(["SCRIPT", "STYLE", "TEXTAREA", "INPUT", "CODE", "PRE"]);
++
++function translateText(value: string): string {
++  const compact = value.replace(/\s+/g, " ").trim();
++  if (!compact) return value;
++
++  const exact = exactTranslations[compact];
++  if (exact) return value.replace(compact, exact);
++
++  for (const [pattern, translate] of regexTranslations) {
++    const match = compact.match(pattern);
++    if (match) {
++      return value.replace(compact, translate(match));
++    }
++  }
++
++  let nextValue = value;
++  for (const [pattern, translate] of inlineRegexTranslations) {
++    nextValue = nextValue.replace(pattern, translate as never);
++  }
++  if (nextValue !== value) return nextValue;
++
++  return value;
++}
++
++function localizeTextNode(node: Text) {
++  const nextValue = translateText(node.nodeValue ?? "");
++  if (nextValue !== node.nodeValue) {
++    node.nodeValue = nextValue;
++  }
++}
++
++function localizeElementAttributes(element: Element) {
++  for (const name of ["title", "aria-label", "placeholder"]) {
++    const value = element.getAttribute(name);
++    if (!value) continue;
++    const translated = translateText(value);
++    if (translated !== value) element.setAttribute(name, translated);
++  }
++}
++
++function localizeNode(root: Node) {
++  if (root.nodeType === Node.TEXT_NODE) {
++    localizeTextNode(root as Text);
++    return;
++  }
++
++  if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_NODE) return;
++
++  const element = root.nodeType === Node.ELEMENT_NODE ? (root as Element) : null;
++  if (element && ignoredTags.has(element.tagName)) return;
++  if (element) localizeElementAttributes(element);
++
++  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
++    acceptNode(node) {
++      if (node.nodeType === Node.ELEMENT_NODE && ignoredTags.has((node as Element).tagName)) {
++        return NodeFilter.FILTER_REJECT;
++      }
++      return NodeFilter.FILTER_ACCEPT;
++    },
++  });
++
++  let current = walker.nextNode();
++  while (current) {
++    if (current.nodeType === Node.TEXT_NODE) {
++      localizeTextNode(current as Text);
++    } else if (current.nodeType === Node.ELEMENT_NODE) {
++      localizeElementAttributes(current as Element);
++    }
++    current = walker.nextNode();
++  }
++}
++
++function installLocalizer() {
++  localizeNode(document.body);
++  document.title = translateText(document.title);
++
++  const observer = new MutationObserver((mutations) => {
++    for (const mutation of mutations) {
++      for (const node of Array.from(mutation.addedNodes)) {
++        localizeNode(node);
++      }
++      if (mutation.type === "characterData") {
++        localizeNode(mutation.target);
++      }
++      if (mutation.type === "attributes" && mutation.target instanceof Element) {
++        localizeElementAttributes(mutation.target);
++      }
++    }
++  });
++
++  observer.observe(document.body, {
++    attributes: true,
++    attributeFilter: ["title", "aria-label", "placeholder"],
++    characterData: true,
++    childList: true,
++    subtree: true,
++  });
++}
++
++if (typeof window !== "undefined") {
++  if (document.readyState === "loading") {
++    document.addEventListener("DOMContentLoaded", installLocalizer, { once: true });
++  } else {
++    installLocalizer();
++  }
++}
+diff --git a/ui/src/main.tsx b/ui/src/main.tsx
+index b37c5a082..a4c8fd059 100644
+--- a/ui/src/main.tsx
++++ b/ui/src/main.tsx
+@@ -19,6 +19,7 @@ import { initPluginBridge } from "./plugins/bridge-init";
+ import { PluginLauncherProvider } from "./plugins/launchers";
+ import "@mdxeditor/editor/style.css";
+ import "./index.css";
++import "./lib/localize-ui";
+ 
+ initPluginBridge(React, ReactDOM);
+ 
+-- 
+2.53.0.windows.2
+
