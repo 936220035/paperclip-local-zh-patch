@@ -20,14 +20,19 @@
   - 用来避免 Paperclip 默认使用 `gpt-5.3-codex-spark`。
   - 只有你的中转站没有这个模型时才建议套。
 
+- `0003-comprehensive-zh-ui-text.patch`
+  - 必选补丁。
+  - 补齐任务详情、暂停弹窗、收件箱、任务看板、新建任务窗口、搜索框、属性选择器等更多中文界面文案。
+
 - `apply-local-zh.ps1`
   - Windows 一键应用脚本。
   - 会先检查补丁能不能套。
   - 已经套过的补丁会自动跳过。
+  - 可以用于 Git 仓库，也可以用于直接下载解压出来的 Paperclip 目录。
 
 ## 怎么用
 
-方式一：在 Paperclip 仓库根目录运行：
+方式一：在 Paperclip 目录根部运行：
 
 ```powershell
 .\apply-local-zh.ps1
@@ -39,7 +44,7 @@
 .\patches\local-zh\apply-local-zh.ps1
 ```
 
-方式二：补丁包单独下载，不复制进 Paperclip 仓库，直接指定 Paperclip 路径：
+方式二：补丁包单独下载，不复制进 Paperclip 目录，直接指定 Paperclip 路径：
 
 ```powershell
 .\apply-local-zh.ps1 -PaperclipRepo "C:\path\to\paperclip"

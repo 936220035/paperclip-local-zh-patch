@@ -1,0 +1,456 @@
+diff --git a/ui/src/components/CommandPalette.tsx b/ui/src/components/CommandPalette.tsx
+index 0dedef05b..8fb05b423 100644
+--- a/ui/src/components/CommandPalette.tsx
++++ b/ui/src/components/CommandPalette.tsx
+@@ -197 +197 @@ export function CommandPalette() {
+-        placeholder="Search tasks, agents, projects..."
++        placeholder="搜索任务、智能体、项目..."
+diff --git a/ui/src/components/IssuesList.tsx b/ui/src/components/IssuesList.tsx
+index 2758ed98d..319b1dea3 100644
+--- a/ui/src/components/IssuesList.tsx
++++ b/ui/src/components/IssuesList.tsx
+@@ -101,7 +101,7 @@ const issueStatusLabels: Record<IssueStatus, string> = {
+-  backlog: "Backlog",
+-  todo: "Todo",
+-  in_progress: "In progress",
+-  in_review: "In review",
+-  done: "Done",
+-  blocked: "Blocked",
+-  cancelled: "Cancelled",
++  backlog: "待排期",
++  todo: "待办",
++  in_progress: "进行中",
++  in_review: "待审核",
++  done: "已完成",
++  blocked: "已阻塞",
++  cancelled: "已取消",
+@@ -475 +475 @@ function IssueSearchInput({
+-        placeholder="Search tasks..."
++        placeholder="搜索任务..."
+@@ -477 +477 @@ function IssueSearchInput({
+-        aria-label="Search tasks"
++        aria-label="搜索任务"
+@@ -522 +522 @@ function SubIssueProgressSummaryStrip({
+-              {summary.doneCount}/{summary.totalCount} done
++              已完成 {summary.doneCount}/{summary.totalCount}
+@@ -525 +525 @@ function SubIssueProgressSummaryStrip({
+-              {summary.inProgressCount} in progress
++              进行中 {summary.inProgressCount}
+@@ -528 +528 @@ function SubIssueProgressSummaryStrip({
+-              {summary.blockedCount} blocked
++              阻塞 {summary.blockedCount}
+@@ -540 +540 @@ function SubIssueProgressSummaryStrip({
+-                  {formatTokens(totalTokens)} tokens
++                  {formatTokens(totalTokens)} token
+@@ -543 +543 @@ function SubIssueProgressSummaryStrip({
+-                  {formatDurationMs(costSummary.runtimeMs)} runtime
++                  运行 {formatDurationMs(costSummary.runtimeMs)}
+@@ -587 +587 @@ function SubIssueProgressSummaryStrip({
+-            <div className="text-sm font-medium text-foreground">No active sub-tasks</div>
++            <div className="text-sm font-medium text-foreground">没有活跃子任务</div>
+@@ -589 +589 @@ function SubIssueProgressSummaryStrip({
+-            <div className="text-sm font-medium text-foreground">All sub-tasks done</div>
++            <div className="text-sm font-medium text-foreground">所有子任务已完成</div>
+@@ -591 +591 @@ function SubIssueProgressSummaryStrip({
+-            <div className="text-sm font-medium text-foreground">No actionable sub-tasks</div>
++            <div className="text-sm font-medium text-foreground">没有可执行的子任务</div>
+@@ -1331 +1331 @@ export function IssuesList({
+-  const createActionLabel = createIssueLabel ? `Create ${createIssueLabel}` : "Create Task";
++  const createActionLabel = createIssueLabel ? `创建 ${createIssueLabel}` : "创建任务";
+@@ -1672,2 +1672,2 @@ export function IssuesList({
+-                    title={`New task in ${group.label}`}
+-                    aria-label={`New task in ${group.label}`}
++                    title={`在 ${group.label} 中新建任务`}
++                    aria-label={`在 ${group.label} 中新建任务`}
+diff --git a/ui/src/components/NewIssueDialog.tsx b/ui/src/components/NewIssueDialog.tsx
+index 87a62341f..70a170503 100644
+--- a/ui/src/components/NewIssueDialog.tsx
++++ b/ui/src/components/NewIssueDialog.tsx
+@@ -228 +228 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
+-      label: "Backlog",
++      label: "待排期",
+@@ -230 +230 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
+-      description: "Parked - assignee will not be woken",
++      description: "先停放，暂不唤醒负责人",
+@@ -234 +234 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
+-      label: "Todo",
++      label: "待办",
+@@ -236 +236 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
+-      description: "Executable - assignee will be woken",
++      description: "可执行，会唤醒负责人",
+@@ -238,3 +238,3 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
+-    { value: "in_progress", label: "In Progress", color: palette.in_progress ?? issueStatusTextDefault },
+-    { value: "in_review", label: "In Review", color: palette.in_review ?? issueStatusTextDefault },
+-    { value: "done", label: "Done", color: palette.done ?? issueStatusTextDefault },
++    { value: "in_progress", label: "进行中", color: palette.in_progress ?? issueStatusTextDefault },
++    { value: "in_review", label: "待审核", color: palette.in_review ?? issueStatusTextDefault },
++    { value: "done", label: "已完成", color: palette.done ?? issueStatusTextDefault },
+@@ -337 +337 @@ const IssueTitleTextarea = memo(function IssueTitleTextarea({
+-      placeholder="Task title"
++      placeholder="任务标题"
+@@ -405 +405 @@ const IssueDescriptionEditor = memo(function IssueDescriptionEditor({
+-      placeholder="Add description..."
++      placeholder="添加说明..."
+@@ -1163 +1163 @@ export function NewIssueDialog() {
+-        : "Agent options";
++        : "智能体选项";
+@@ -1375 +1375 @@ export function NewIssueDialog() {
+-            <span>{isSubIssueMode ? "New sub-task" : "New task"}</span>
++            <span>{isSubIssueMode ? "新建子任务" : "新建任务"}</span>
+@@ -1428 +1428 @@ export function NewIssueDialog() {
+-              <span className="w-6 shrink-0 text-center">For</span>
++              <span className="shrink-0 text-center">负责人</span>
+@@ -1434 +1434 @@ export function NewIssueDialog() {
+-                placeholder="Assignee"
++                placeholder="负责人"
+@@ -1436,3 +1436,3 @@ export function NewIssueDialog() {
+-                noneLabel="No assignee"
+-                searchPlaceholder="Search assignees..."
+-                emptyMessage="No assignees found."
++                noneLabel="无负责人"
++                searchPlaceholder="搜索负责人..."
++                emptyMessage="没有找到负责人。"
+@@ -1468 +1468 @@ export function NewIssueDialog() {
+-                    <span className="text-muted-foreground">Assignee</span>
++                    <span className="text-muted-foreground">负责人</span>
+@@ -1487 +1487 @@ export function NewIssueDialog() {
+-              <span>in</span>
++              <span>项目</span>
+@@ -1493 +1493 @@ export function NewIssueDialog() {
+-                placeholder="Project"
++                placeholder="项目"
+@@ -1495,3 +1495,3 @@ export function NewIssueDialog() {
+-                noneLabel="No project"
+-                searchPlaceholder="Search projects..."
+-                emptyMessage="No projects found."
++                noneLabel="无项目"
++                searchPlaceholder="搜索项目..."
++                emptyMessage="没有找到项目。"
+@@ -1512 +1512 @@ export function NewIssueDialog() {
+-                    <span className="text-muted-foreground">Project</span>
++                    <span className="text-muted-foreground">项目</span>
+@@ -1747 +1747 @@ export function NewIssueDialog() {
+-                      <div className="text-xs font-medium text-foreground">Instructions <span className="font-normal text-muted-foreground">(optional)</span></div>
++                      <div className="text-xs font-medium text-foreground">说明 <span className="font-normal text-muted-foreground">（可选）</span></div>
+@@ -1751 +1751 @@ export function NewIssueDialog() {
+-                        placeholder="What should the watchdog watch for and how should it keep work moving?"
++                        placeholder="要让监控智能体关注什么？它应该如何推动任务继续？"
+@@ -1767 +1767 @@ export function NewIssueDialog() {
+-                        Remove
++                        移除
+@@ -1770 +1770 @@ export function NewIssueDialog() {
+-                        Done
++                        完成
+@@ -1784 +1784 @@ export function NewIssueDialog() {
+-                <span className="shrink-0">Sub-task of</span>
++                <span className="shrink-0">父任务</span>
+@@ -2132 +2132 @@ export function NewIssueDialog() {
+-            Upload
++            上传
+@@ -2191 +2191 @@ export function NewIssueDialog() {
+-                  Priority
++                  优先级
+@@ -2215 +2215 @@ export function NewIssueDialog() {
+-                Start date
++                开始日期
+@@ -2219 +2219 @@ export function NewIssueDialog() {
+-                Due date
++                截止日期
+@@ -2232 +2232 @@ export function NewIssueDialog() {
+-              Assigning implies executable intent - leave status as <span className="font-medium">Backlog</span> only to deliberately park this. The assignee will not be woken until status moves to <span className="font-medium">Todo</span> or <span className="font-medium">In Progress</span>.
++              分配负责人通常表示要执行。只有确实想先停放时才保留为 <span className="font-medium">待排期</span>。状态变为 <span className="font-medium">待办</span> 或 <span className="font-medium">进行中</span> 后才会唤醒负责人。
+@@ -2244 +2244 @@ export function NewIssueDialog() {
+-              Low-trust review agent. It can only act inside its assigned review boundary; issue, project, or run policy defines the concrete scope.
++              低信任审核智能体。它只能在分配的审核范围内行动，具体范围由任务、项目或运行策略决定。
+@@ -2258 +2258 @@ export function NewIssueDialog() {
+-            Discard Draft
++            丢弃草稿
+@@ -2265 +2265 @@ export function NewIssueDialog() {
+-                  Creating issue...
++                  正在创建任务...
+@@ -2280 +2280 @@ export function NewIssueDialog() {
+-                <span>{createIssue.isPending ? "Creating..." : isSubIssueMode ? "Create Sub-Task" : "Create Task"}</span>
++                <span>{createIssue.isPending ? "正在创建..." : isSubIssueMode ? "创建子任务" : "创建任务"}</span>
+diff --git a/ui/src/components/SidebarAgents.tsx b/ui/src/components/SidebarAgents.tsx
+index 2b0db3702..ed80b4f5f 100644
+--- a/ui/src/components/SidebarAgents.tsx
++++ b/ui/src/components/SidebarAgents.tsx
+@@ -66 +66 @@ const AGENT_SORT_CHOICES: SidebarSectionRadioChoice[] = [
+-  { value: "recent", label: "Recent" },
++  { value: "recent", label: "最近" },
+@@ -460 +460 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
+-        title: action === "pause" ? "Agent paused" : "Agent resumed",
++        title: action === "pause" ? "智能体已暂停" : "智能体已恢复",
+@@ -553 +553 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
+-      label="Agents"
++      label="智能体"
+@@ -561 +561 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
+-        ariaLabel: "Agents section actions",
++        ariaLabel: "智能体分区操作",
+@@ -566 +566 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
+-        radioLabel: "Agent sort",
++        radioLabel: "智能体排序",
+diff --git a/ui/src/components/SidebarProjects.tsx b/ui/src/components/SidebarProjects.tsx
+index 100cc8bed..d91ef97a5 100644
+--- a/ui/src/components/SidebarProjects.tsx
++++ b/ui/src/components/SidebarProjects.tsx
+@@ -54 +54 @@ const PROJECT_SORT_CHOICES: SidebarSectionRadioChoice[] = [
+-  { value: "recent", label: "Recent" },
++  { value: "recent", label: "最近" },
+diff --git a/ui/src/components/interrupt-handoff/InterruptHandoffViews.tsx b/ui/src/components/interrupt-handoff/InterruptHandoffViews.tsx
+index bd66a3200..bc6b5ec6f 100644
+--- a/ui/src/components/interrupt-handoff/InterruptHandoffViews.tsx
++++ b/ui/src/components/interrupt-handoff/InterruptHandoffViews.tsx
+@@ -41,2 +41,2 @@ function userLabel(userId: string, resolvers: HandoffChipResolvers): string {
+-  const base = label ?? "Board";
+-  return resolvers.currentUserId && resolvers.currentUserId === userId ? `${base} (you)` : base;
++  const base = label ?? "看板";
++  return resolvers.currentUserId && resolvers.currentUserId === userId ? `${base}（你）` : base;
+@@ -62 +62 @@ export function AssigneeChip({
+-        <span className="sr-only">Agent </span>
++        <span className="sr-only">智能体 </span>
+@@ -71 +71 @@ export function AssigneeChip({
+-        <span className="sr-only">User </span>
++        <span className="sr-only">用户 </span>
+@@ -83,2 +83,2 @@ export function AssigneeChip({
+-      <span className="sr-only">No responsible — </span>
+-      Unassigned
++      <span className="sr-only">没有负责人 - </span>
++      未分配
+@@ -110 +110 @@ export function HandoffWakeRow({
+-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Wake</span>
++      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">唤醒</span>
+@@ -206,2 +206 @@ export function ComposerMentionCoach({
+-        Did you mean <span className="font-medium">@{candidate.matchedText}</span>? Plain text won't
+-        notify or assign an agent.
++        你是想提到 <span className="font-medium">@{candidate.matchedText}</span> 吗？普通文字不会通知或分配智能体。
+@@ -213 +212 @@ export function ComposerMentionCoach({
+-        aria-label={`Insert mention for ${agentDisplayName} into your comment`}
++        aria-label={`把 ${agentDisplayName} 作为提及插入评论`}
+@@ -215 +214 @@ export function ComposerMentionCoach({
+-        Insert mention
++        插入提及
+@@ -221 +220 @@ export function ComposerMentionCoach({
+-        aria-label="Dismiss suggestion"
++        aria-label="关闭建议"
+@@ -280 +279 @@ export function InterruptAssignConfirm({
+-            <span>Hand off to</span>
++            <span>交给</span>
+@@ -322 +321 @@ export function PauseAffectsSummaryView({
+-        What this affects
++        影响范围
+@@ -326,2 +325 @@ export function PauseAffectsSummaryView({
+-          Nothing live to pause — no agent run is in flight or queued. This records a hold so new work
+-          won't start until you resume.
++          当前没有正在运行或排队的智能体任务。这里会记录一个暂停标记，恢复前不会启动新工作。
+@@ -340 +338 @@ export function PauseAffectsSummaryView({
+-              <span className="text-muted-foreground">— {bucket.detail}</span>
++              <span className="text-muted-foreground">- {bucket.detail}</span>
+@@ -345 +343 @@ export function PauseAffectsSummaryView({
+-        <p className="text-xs text-muted-foreground">No tasks are affected.</p>
++        <p className="text-xs text-muted-foreground">没有任务受到影响。</p>
+diff --git a/ui/src/components/issue-properties/IssueProperties.tsx b/ui/src/components/issue-properties/IssueProperties.tsx
+index 90067a5f5..e27f82cb7 100644
+--- a/ui/src/components/issue-properties/IssueProperties.tsx
++++ b/ui/src/components/issue-properties/IssueProperties.tsx
+@@ -1745 +1745 @@ export function IssueProperties({
+-        placeholder="Search tasks..."
++        placeholder="搜索任务..."
+@@ -1761 +1761 @@ export function IssueProperties({
+-          No parent
++          无父任务
+@@ -1816 +1816 @@ export function IssueProperties({
+-        placeholder="Search tasks..."
++        placeholder="搜索任务..."
+@@ -1820 +1820 @@ export function IssueProperties({
+-        aria-label="Search tasks to add as blockers"
++        aria-label="搜索要添加为阻塞项的任务"
+@@ -1834 +1834 @@ export function IssueProperties({
+-          No blockers
++          无阻塞项
+diff --git a/ui/src/lib/interrupt-handoff.ts b/ui/src/lib/interrupt-handoff.ts
+index f5c3d401b..40585d002 100644
+--- a/ui/src/lib/interrupt-handoff.ts
++++ b/ui/src/lib/interrupt-handoff.ts
+@@ -379,5 +379,5 @@ const PAUSE_BUCKET_LABEL: Record<PauseAffectsBucketKey, string> = {
+-  live_runs: "Live agent runs",
+-  queued_wakes: "Queued wakes",
+-  agent_owned: "Agent-owned",
+-  human_owned: "Human-owned",
+-  static: "Static",
++  live_runs: "运行中的智能体",
++  queued_wakes: "排队中的唤醒",
++  agent_owned: "智能体负责",
++  human_owned: "用户负责",
++  static: "静态任务",
+@@ -387,5 +387,5 @@ const PAUSE_BUCKET_DETAIL: Record<PauseAffectsBucketKey, string> = {
+-  live_runs: "interrupted now, re-queued when you resume",
+-  queued_wakes: "held — they won't start until you resume",
+-  agent_owned: "responsible agent; no run is live",
+-  human_owned: "owned by a board user; pausing won't notify them",
+-  static: "no responsible; nothing was going to run",
++  live_runs: "现在会中断，恢复后重新排队",
++  queued_wakes: "会被暂停，恢复前不会启动",
++  agent_owned: "有负责人智能体，但当前没有运行",
++  human_owned: "由看板用户负责，暂停不会通知他们",
++  static: "没有负责人，本来也不会自动运行",
+diff --git a/ui/src/pages/Inbox.tsx b/ui/src/pages/Inbox.tsx
+index a66362e80..9025344b4 100644
+--- a/ui/src/pages/Inbox.tsx
++++ b/ui/src/pages/Inbox.tsx
+@@ -1987 +1987 @@ export function Inbox() {
+-            placeholder="Search inbox…"
++            placeholder="搜索收件箱..."
+@@ -2017 +2017 @@ export function Inbox() {
+-                label: "Mine",
++                label: "我的",
+@@ -2021 +2021 @@ export function Inbox() {
+-                label: "Recent",
++                label: "最近",
+@@ -2023,3 +2023,3 @@ export function Inbox() {
+-              { value: "unread", label: "Unread" },
+-              { value: "blocked", label: "Blocked" },
+-              { value: "all", label: "All" },
++              { value: "unread", label: "未读" },
++              { value: "blocked", label: "已阻塞" },
++              { value: "all", label: "全部" },
+@@ -2035 +2035 @@ export function Inbox() {
+-              placeholder="Search inbox…"
++              placeholder="搜索收件箱..."
+@@ -2550,2 +2550,2 @@ export function Inbox() {
+-                              title={`New task in ${group.label}`}
+-                              aria-label={`New task in ${group.label}`}
++                              title={`在 ${group.label} 中新建任务`}
++                              aria-label={`在 ${group.label} 中新建任务`}
+diff --git a/ui/src/pages/IssueDetail.tsx b/ui/src/pages/IssueDetail.tsx
+index f3ae69152..05abef754 100644
+--- a/ui/src/pages/IssueDetail.tsx
++++ b/ui/src/pages/IssueDetail.tsx
+@@ -238,4 +238,4 @@ const TREE_CONTROL_MODE_LABEL: Record<IssueTreeControlMode, string> = {
+-  pause: "Pause subtree",
+-  resume: "Resume subtree",
+-  cancel: "Cancel subtree",
+-  restore: "Restore subtree",
++  pause: "暂停子任务",
++  resume: "恢复子任务",
++  cancel: "取消子任务",
++  restore: "还原子任务",
+@@ -244,2 +244,2 @@ const LEAF_WORK_CONTROL_MODE_LABEL: Partial<Record<IssueTreeControlMode, string>
+-  pause: "Pause work",
+-  resume: "Resume work",
++  pause: "暂停任务",
++  resume: "恢复任务",
+@@ -248,4 +248,4 @@ const TREE_CONTROL_MODE_HELP_TEXT: Record<IssueTreeControlMode, string> = {
+-  pause: "Pause active execution in this task subtree until an explicit resume.",
+-  resume: "Release the active subtree pause hold so held work can continue.",
+-  cancel: "Cancel non-terminal tasks in this subtree and stop queued/running work where possible.",
+-  restore: "Restore tasks cancelled by this subtree operation so work can resume.",
++  pause: "暂停这个任务及其子任务里的执行，直到你手动恢复。",
++  resume: "解除暂停，让被暂停的任务继续推进。",
++  cancel: "取消这个子树里还没结束的任务，并尽量停止排队或运行中的工作。",
++  restore: "还原被这个操作取消的任务，让工作可以继续。",
+@@ -254,2 +254,2 @@ const LEAF_WORK_CONTROL_MODE_HELP_TEXT: Partial<Record<IssueTreeControlMode, str
+-  pause: "Pause active execution on this task until an explicit resume.",
+-  resume: "Release the active pause hold so this task can continue.",
++  pause: "暂停这个任务的执行，直到你手动恢复。",
++  resume: "解除暂停，让这个任务继续推进。",
+@@ -856 +856 @@ function InboxMobileToolbar({
+-              Copy as markdown
++              复制为 Markdown
+@@ -863 +863 @@ function InboxMobileToolbar({
+-              Properties
++              属性
+@@ -871 +871 @@ function InboxMobileToolbar({
+-                Hide this task
++                隐藏这个任务
+@@ -1233 +1233 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
+-        stopRunLabel="Pause work"
++        stopRunLabel="暂停任务"
+@@ -3907,2 +3907,2 @@ export function IssueDetail() {
+-        ? "Pause work"
+-        : "Pause and stop work"
++        ? "暂停任务"
++        : "暂停并停止执行"
+@@ -3910 +3910 @@ export function IssueDetail() {
+-        ? `Cancel ${previewAffectedIssueCount} tasks`
++        ? `取消 ${previewAffectedIssueCount} 个任务`
+@@ -3912 +3912 @@ export function IssueDetail() {
+-          ? `Restore ${previewAffectedIssueCount} tasks`
++          ? `还原 ${previewAffectedIssueCount} 个任务`
+@@ -3914,2 +3914,2 @@ export function IssueDetail() {
+-            ? "Resume work"
+-            : "Resume subtree";
++            ? "恢复任务"
++            : "恢复子任务";
+@@ -4045 +4045 @@ export function IssueDetail() {
+-                    {childIssues.length === 0 ? "Resume work" : "Resume subtree"}
++                    {childIssues.length === 0 ? "恢复任务" : "恢复子任务"}
+@@ -4316 +4316 @@ export function IssueDetail() {
+-                  Pause work...
++                  暂停任务...
+@@ -4330 +4330 @@ export function IssueDetail() {
+-                  Resume work
++                  恢复任务
+@@ -4345 +4345 @@ export function IssueDetail() {
+-                    Pause subtree...
++                    暂停子任务...
+@@ -4358 +4358 @@ export function IssueDetail() {
+-                      Resume subtree
++                      恢复子任务
+@@ -4371 +4371 @@ export function IssueDetail() {
+-                    Cancel subtree...
++                    取消子任务...
+@@ -4385 +4385 @@ export function IssueDetail() {
+-                      Restore subtree...
++                      还原子任务...
+@@ -4401 +4401 @@ export function IssueDetail() {
+-                Hide this task
++                隐藏这个任务
+@@ -4805 +4805 @@ export function IssueDetail() {
+-                Cancelling a subtree is destructive. Non-terminal tasks will be marked cancelled, and running or queued work will be interrupted where possible.
++                取消子任务是破坏性操作。未完成的任务会被标记为已取消，正在运行或排队的工作会尽量中断。
+@@ -4811 +4811 @@ export function IssueDetail() {
+-                Reason (optional)
++                原因（可选）
+@@ -4816 +4816 @@ export function IssueDetail() {
+-                placeholder="Explain why this subtree control is being applied..."
++                placeholder="简单说明为什么要执行这个操作..."
+@@ -4832 +4832 @@ export function IssueDetail() {
+-                    <span className="block font-medium">Wake affected agents ({previewAffectedAgentCount})</span>
++                    <span className="block font-medium">唤醒受影响的智能体（{previewAffectedAgentCount}）</span>
+@@ -4835,2 +4835,2 @@ export function IssueDetail() {
+-                        ? "No assignee agents are eligible to wake from this preview."
+-                        : "Wake assignee agents after this operation completes."}
++                        ? "这次预览里没有可以唤醒的负责人智能体。"
++                        : "操作完成后唤醒对应负责人智能体。"}
+@@ -4863 +4863 @@ export function IssueDetail() {
+-                <span>I understand this will cancel {previewAffectedIssueCount} tasks.</span>
++                <span>我确认要取消 {previewAffectedIssueCount} 个任务。</span>
+@@ -4885 +4885 @@ export function IssueDetail() {
+-                    Retry preview
++                    重试预览
+@@ -4920 +4920 @@ export function IssueDetail() {
+-                              <span className="shrink-0 text-xs text-muted-foreground">Complete</span>
++                              <span className="shrink-0 text-xs text-muted-foreground">已完成</span>
+@@ -4929 +4929 @@ export function IssueDetail() {
+-                <p className="text-xs text-muted-foreground">Preview unavailable.</p>
++                <p className="text-xs text-muted-foreground">预览不可用。</p>
+@@ -4935 +4935 @@ export function IssueDetail() {
+-              Close
++              关闭
+@@ -4942 +4942 @@ export function IssueDetail() {
+-              {executeTreeControl.isPending ? "Applying..." : treeControlPrimaryButtonLabel}
++              {executeTreeControl.isPending ? "正在应用..." : treeControlPrimaryButtonLabel}
+@@ -4952 +4952 @@ export function IssueDetail() {
+-            <SheetTitle className="text-sm">Properties</SheetTitle>
++            <SheetTitle className="text-sm">属性</SheetTitle>
+diff --git a/ui/src/pages/Search.tsx b/ui/src/pages/Search.tsx
+index c0da109b1..8db24c13c 100644
+--- a/ui/src/pages/Search.tsx
++++ b/ui/src/pages/Search.tsx
+@@ -349 +349 @@ export function Search() {
+-            placeholder="Search tasks, comments, documents, artifacts, agents, projects…"
++            placeholder="搜索任务、评论、文档、附件、智能体、项目..."
+@@ -465 +465 @@ function SearchTabContent({
+-              Recent searches
++              最近搜索
