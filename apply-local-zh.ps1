@@ -118,6 +118,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $mainPatch = Join-Path $scriptDir "0001-local-zh-ui-and-windows-fixes.patch"
 $comprehensiveZhPatch = Join-Path $scriptDir "0003-comprehensive-zh-ui-text.patch"
 $expandedLocalizerPatch = Join-Path $scriptDir "0004-expanded-zh-localizer-coverage.patch"
+$broaderLocalizerPatch = Join-Path $scriptDir "0005-broader-zh-localizer-coverage.patch"
 $modelPatch = Join-Path $scriptDir "0002-optional-codex-model-default.patch"
 
 Write-Host "Paperclip local Chinese patch pack"
@@ -147,6 +148,15 @@ Apply-LocalPatch `
     "ui\src\lib\localize-ui.ts::Jump to latest messages",
     "ui\src\lib\localize-ui.ts::RECOVERY IN PROGRESS",
     "ui\src\lib\localize-ui.ts::Static:"
+  )
+Apply-LocalPatch `
+  -PatchPath $broaderLocalizerPatch `
+  -Name "Broader Chinese localizer coverage for company, costs, activity, and settings" `
+  -AppliedMarkers @(
+    "ui\src\lib\localize-ui.ts::Work Timeline",
+    "ui\src\lib\localize-ui.ts::INFERENCE SPEND",
+    "ui\src\lib\localize-ui.ts::Company Settings",
+    "ui\src\lib\localize-ui.ts::environment lease acquired"
   )
 
 if ($IncludeCodexModelDefault) {
