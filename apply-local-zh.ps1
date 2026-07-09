@@ -117,12 +117,20 @@ Set-Location -LiteralPath $repoRoot
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $mainPatch = Join-Path $scriptDir "0001-local-zh-ui-and-windows-fixes.patch"
 $comprehensiveZhPatch = Join-Path $scriptDir "0003-comprehensive-zh-ui-text.patch"
+$expandedLocalizerPatch = Join-Path $scriptDir "0004-expanded-zh-localizer-coverage.patch"
 $modelPatch = Join-Path $scriptDir "0002-optional-codex-model-default.patch"
 
 Write-Host "Paperclip local Chinese patch pack"
 Write-Host "Repo: $repoRoot"
 
-Apply-LocalPatch -PatchPath $mainPatch -Name "Chinese UI + Windows local fixes"
+Apply-LocalPatch `
+  -PatchPath $mainPatch `
+  -Name "Chinese UI + Windows local fixes" `
+  -AppliedMarkers @(
+    "ui\src\main.tsx::./lib/localize-ui",
+    "ui\src\lib\localize-ui.ts::DASHBOARD",
+    "ui\src\i18n\locales.ts::zh-CN"
+  )
 Apply-LocalPatch `
   -PatchPath $comprehensiveZhPatch `
   -Name "Comprehensive Chinese UI text coverage" `
@@ -132,9 +140,23 @@ Apply-LocalPatch `
     "ui\src\pages\Inbox.tsx::搜索收件箱",
     "ui\src\components\IssuesList.tsx::进行中"
   )
+Apply-LocalPatch `
+  -PatchPath $expandedLocalizerPatch `
+  -Name "Expanded Chinese localizer coverage" `
+  -AppliedMarkers @(
+    "ui\src\lib\localize-ui.ts::Jump to latest messages",
+    "ui\src\lib\localize-ui.ts::RECOVERY IN PROGRESS",
+    "ui\src\lib\localize-ui.ts::Static:"
+  )
 
 if ($IncludeCodexModelDefault) {
-  Apply-LocalPatch -PatchPath $modelPatch -Name "Optional Codex model default for relay compatibility"
+  Apply-LocalPatch `
+    -PatchPath $modelPatch `
+    -Name "Optional Codex model default for relay compatibility" `
+    -AppliedMarkers @(
+      "packages\adapters\codex-local\src\index.ts::Some gateways do not expose the spark model",
+      "packages\adapters\codex-local\src\index.ts::model: DEFAULT_CODEX_LOCAL_MODEL"
+    )
 } else {
   Write-Host ""
   Write-Host "Optional model patch skipped."
